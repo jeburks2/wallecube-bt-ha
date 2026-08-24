@@ -1,0 +1,220 @@
+{
+  "config": {
+    "step": {
+      "bluetooth_confirm": {
+        "description": "Set up {name}?"
+      },
+      "confirm": {
+        "description": "Set up {name}?"
+      },
+      "user": {
+        "description": "Enter the BLE MAC address of your WalleCube UPS, e.g. {example}.",
+        "data": {
+          "address": "Bluetooth address"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "WalleCube UPS configuration",
+        "menu_options": {
+          "credentials": "Settings-channel access (AES key / auth code)",
+          "adapter": "Power adapter (voltage & current)"
+        }
+      },
+      "credentials": {
+        "title": "Settings-channel access (optional)",
+        "description": "Optional, and specific to YOUR OWN device - never share these or commit them to a repo. Leave blank to skip; all telemetry sensors work fine without them. See the README for how to extract them for your unit (watch `adb logcat` while opening the official WalleCube app - it prints both values directly).",
+        "data": {
+          "aes_key": "AES key (32 hex characters)",
+          "auth_code": "Auth code (decimal number)"
+        }
+      },
+      "adapter": {
+        "title": "Power adapter configuration",
+        "description": "Take these from your power adapter's own label — the UPS's output follows them, so a wrong value can feed the wrong voltage to whatever is plugged in.\n\nThe power-off voltage is calculated for you (currently **{power_off} V**), along with the charge limits, exactly as the official app does. They have to agree with the adapter voltage or the UPS will not keep the setting.\n\n**These do not take effect until you press the reset button on the device.**\n\nRange 9-20 V, and the pair must not exceed {watts} W.",
+        "data": {
+          "adapter_voltage": "Adapter voltage (V)",
+          "adapter_current": "Adapter current (A)"
+        }
+      }
+    },
+    "error": {
+      "invalid_aes_key": "Must be exactly 32 hex characters (16 bytes)",
+      "invalid_auth_code": "Must be a decimal number",
+      "exceeds_power_rating": "Voltage x current exceeds this UPS's 150 W rating",
+      "write_failed": "The UPS did not accept the new settings"
+    },
+    "abort": {
+      "adapter_saved": "Adapter settings saved to the UPS.\n\n**Now press the reset button on the device** — the new voltage and current do not take effect until you do.",
+      "adapter_unavailable": "Adapter settings need the AES key and auth code configured first, and an active connection to the UPS.",
+      "adapter_not_read_yet": "The current adapter settings haven't been read from the UPS yet - try again in a moment."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "input_voltage": {
+        "name": "Input voltage"
+      },
+      "input_current": {
+        "name": "Input current"
+      },
+      "output_voltage": {
+        "name": "Output voltage"
+      },
+      "output_current": {
+        "name": "Output current"
+      },
+      "battery_voltage": {
+        "name": "Battery pack voltage"
+      },
+      "battery_current": {
+        "name": "Battery current"
+      },
+      "battery_temperature": {
+        "name": "Battery temperature"
+      },
+      "cell_voltage_diff": {
+        "name": "Cell voltage difference"
+      },
+      "cell_1_voltage": {
+        "name": "Cell 1 voltage"
+      },
+      "cell_2_voltage": {
+        "name": "Cell 2 voltage"
+      },
+      "cell_3_voltage": {
+        "name": "Cell 3 voltage"
+      },
+      "cell_4_voltage": {
+        "name": "Cell 4 voltage"
+      },
+      "lcd_off_time": {
+        "name": "LCD off-time"
+      },
+      "sleep_time": {
+        "name": "Sleep timeout"
+      },
+      "sleep_min_current": {
+        "name": "Sleep current threshold"
+      },
+      "buzzer_mode": {
+        "name": "Buzzer mode",
+        "state": {
+          "mute": "Mute",
+          "beep_once": "Beep once",
+          "repeat": "Repeat"
+        }
+      },
+      "display_temperature_unit": {
+        "name": "Display temperature unit",
+        "state": {
+          "celsius": "Celsius",
+          "fahrenheit": "Fahrenheit"
+        }
+      },
+      "wifi_ssid": {
+        "name": "Wi-Fi SSID"
+      },
+      "wifi_ip_address": {
+        "name": "Wi-Fi IP address"
+      },
+      "wifi_rssi": {
+        "name": "Wi-Fi signal strength"
+      },
+      "battery_percent": {
+        "name": "Battery percentage"
+      },
+      "total_consumption": {
+        "name": "Total energy consumption"
+      },
+      "adapter_current": {
+        "name": "Adapter current"
+      },
+      "charge_current_limit": {
+        "name": "Charge current limit"
+      },
+      "working_voltage": {
+        "name": "Working voltage"
+      },
+      "stop_charge_voltage": {
+        "name": "Stop-charge voltage"
+      },
+      "power_ok_voltage": {
+        "name": "Power-OK detect voltage"
+      },
+      "status_flags": {
+        "name": "Status flags"
+      },
+      "output_power": {
+        "name": "Output power"
+      },
+      "input_power": {
+        "name": "Input power"
+      },
+      "battery_power": {
+        "name": "Battery power"
+      }
+    },
+    "binary_sensor": {
+      "ac_present": {
+        "name": "AC present"
+      },
+      "discharging": {
+        "name": "Battery discharging"
+      },
+      "overload": {
+        "name": "Overload"
+      },
+      "shutdown_imminent": {
+        "name": "Shutdown imminent"
+      },
+      "charging": {
+        "name": "Charging"
+      },
+      "on_battery": {
+        "name": "On battery"
+      }
+    },
+    "select": {
+      "buzzer_mode_select": {
+        "name": "Buzzer mode",
+        "state": {
+          "mute": "Mute",
+          "beep_once": "Beep once",
+          "repeat": "Repeat"
+        }
+      },
+      "display_language_select": {
+        "name": "Display language",
+        "state": {
+          "english": "English",
+          "chinese": "中文"
+        }
+      },
+      "display_temperature_unit_select": {
+        "name": "Display temperature unit",
+        "state": {
+          "celsius": "Celsius",
+          "fahrenheit": "Fahrenheit"
+        }
+      }
+    },
+    "number": {
+      "sleep_time_set": {
+        "name": "Sleep timeout"
+      },
+      "sleep_min_current_set": {
+        "name": "Sleep current threshold"
+      },
+      "lcd_off_time_set": {
+        "name": "LCD off-time"
+      }
+    }
+  }
+}
