@@ -13,6 +13,8 @@ pairing is required.
 
 Tested against a **W150**. The protocol is likely shared with the W180.
 
+![The WalleCube UPS device page in Home Assistant, showing live telemetry sensors and recent state changes](docs/images/wallecube-sensors.png)
+
 ---
 
 ## What you get
@@ -46,6 +48,10 @@ Read straight off the `F0B*` characteristics as plain GATT reads:
 - Power-adapter config: adapter current, charge current limit, working
   voltage, stop-charge voltage, power-OK detect voltage
 
+<img src="docs/images/wallecube-diagnostics.png" width="360"
+  alt="The Diagnostic card, listing adapter current, buzzer mode, charge
+  current limit, sleep settings, working voltage and Wi-Fi details">
+
 ### Writable settings — needs the key *and* auth code
 
 | Entity | Type | Range |
@@ -56,6 +62,11 @@ Read straight off the `F0B*` characteristics as plain GATT reads:
 | Sleep timeout | `number` | 20–7200 s |
 | Sleep current threshold | `number` | 20–3000 mA |
 | LCD off-time | `number` | 10–36000 s |
+
+<img src="docs/images/wallecube-config.png" width="360"
+  alt="The Configuration card, with dropdowns for buzzer mode, display
+  language and temperature unit, and number boxes for LCD off-time, sleep
+  current threshold and sleep timeout">
 
 Plus **Wi-Fi diagnostics** (SSID, IP, signal strength)
 
@@ -73,6 +84,11 @@ set once when hardware changes and **is not applied until you press the
 reset button on the device** — the wrong shape for something you can drag on
 a dashboard. The 150 W ceiling is checked on the voltage/current *pair*,
 which no static min/max can express.
+
+<img src="docs/images/wallecube-powerconfig.png" width="480"
+  alt="The Power adapter configuration dialog, showing the calculated
+  power-off voltage, the 150 W limit, and fields for adapter voltage and
+  current">
 
 ### Not supported
 
