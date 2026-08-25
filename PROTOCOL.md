@@ -73,17 +73,12 @@ Pack voltage at offset 12 equals the sum of the four cell voltages.
 **Two offsets are easy to get wrong, and both were:**
 
 - **Offset 10 divides by 10, not 1000.** Every other voltage/current field
-  divides by 1000, so this one reads as a constant `1000` — which is why it
-  was long mistaken for a "rated capacity" constant. It is
-  `batteryCapacity` in the app's `measureDecoder`, and `1000` means
-  **100.0 %**. It only looked constant because the pack was full during
-  every early capture. Confirmed against a real AC-loss event: with the
-  adapter unplugged it tracked smoothly from 100.0 % down to 99.0 % over
-  about two minutes under a 0.75 A load.
+  divides by 1000 to get the human-readable value, but battery percentage is
+  scaled by 10. (i.e., a raw value of `1000` means  **100.0 %**)
 - **Offsets 22 and 24 are signed.** Read as unsigned, a below-freezing
   battery temperature reports as roughly 6553 °C.
 
-Power is not reported by the device at all. Input, output, and battery
+Power (watts) is not directly reported by the device. Input, output, and battery
 watts are `V × A`, which is how the app's own display derives them.
 
 ---
@@ -118,12 +113,8 @@ is why: `discharging` only tracks the sign of the battery current, so it
 stays set for a while after mains returns. A sensor keyed off that bit
 reports "on battery" with the adapter plugged in.
 
-`charging` is genuine but noisy — on a full pack it flips on nearly every
+`charging` is true but noisy — on a full pack it flips on nearly every
 telemetry tick as the float current swings either side of zero.
-
-The same capture also settled a question about the link itself: BLE stayed
-up for the entire outage (462 frames, largest gap 1.26 s across 9 minutes),
-so this UPS keeps talking happily while running on battery.
 
 ---
 
@@ -133,7 +124,7 @@ Each stored setting lives on its own characteristic. Reads are plain GATT
 reads; the ciphertext decrypts to a `0x51` marker byte followed by `n`
 little-endian u16 fields.
 
-```
+```log
 plaintext:  0x51 | u16 | u16 | ...   (zero-padded to a 16-byte multiple)
 ```
 
@@ -167,7 +158,7 @@ milliamps; 3–5 are millivolts.
 `doUpsSettings` takes three arguments for five wire fields because the app
 derives the rest, and **the device requires them to agree**:
 
-```
+```log
 enChargeLimit = adapterCurrent - 1000          (1 A reserved for the load)
 stopChargeLim = workVol × 0.965
 pwrokDectLim  = workVol × 0.958, rounded to the nearest 0.1 V
@@ -176,18 +167,12 @@ pwrokDectLim  = workVol × 0.958, rounded to the nearest 0.1 V
 These reproduce this unit's factory block exactly from just
 `(3000 mA, 12000 mV)` → `(3000, 2000, 12000, 11580, 11500)`.
 
-This is not cosmetic. Writing a new working voltage alongside the
-*previously read* thresholds produces a block the device cannot reconcile,
-and it resolves the conflict by **dropping the working voltage to match the
-stale thresholds**. A 12 V write read back as 12 V, then came up as 9 V
-after a reset — with the UPS genuinely outputting 9.02 V.
-
 Changes to this block do not take effect until the device's reset button is
 pressed.
 
 ### 4.2 Settings write frame
 
-```
+```log
 0x51 | 0x00 | authCode(4, LE) | FF FF FF FF | u16 per value
 ```
 
@@ -239,7 +224,7 @@ voltage × current *pair* must be checked before writing.
 A request/response channel on service `F0A2`: write an encrypted frame,
 receive the reply as a notification on the same characteristic.
 
-```
+```log
 type(1) | payload_len(1) | nonce(2) | authCode(4, LE) | payload
 ```
 
@@ -261,18 +246,6 @@ zero-padded to a 16-byte multiple. A **query** is that frame with
 | `0x48` | `getWolMacList` | query | — → Wake-on-LAN MAC list |
 | `0x4B` | `setLcdOffTime` | write | `u32` seconds |
 | `0x4C` | `getLcdOffTime` | query | — → `u32` seconds |
-
-**The `0xA2` opcode that earlier writeups of this protocol describe does not
-exist.** blutter renders Dart integer constants Smi-tagged, i.e. the raw
-value in the disassembly is `real_value << 1`. So `r16 = 162` is opcode
-`0x51`, not `0xA2`. Verified against the one frame already known to be
-correct: `getLcdOffTimeEncoder` shows `r16 = 152` → `0x4C` = 76 ✓. Every
-blind probe against `0xA2` failed because the device has no concept of it.
-
-The same tagging error is what hid the fact that settings are
-one-per-characteristic: the six "`0x51`" encoders aren't six opcodes, they
-target six different characteristics, and `0x51` is a channel marker — the
-same value as the cleartext telemetry header.
 
 ### 5.2 Wi-Fi status payload (`0x41`)
 
@@ -301,7 +274,7 @@ not a secret.
 
 The key derivation, from `DeviceCoder`'s constructor:
 
-```
+```dart
 key = raw_bytes( hex( MD5( fixed_app_salt + per_device_value ) ) )
 ```
 
@@ -322,11 +295,13 @@ three-command extraction.
 
 - **Runtime remaining does not exist on this model.** `leftSecs` is offset
   26, and a live AC-loss capture (462 frames, 357 of them with the mains
-  genuinely disconnected) had it reading a constant `1` in *every single
+  disconnected) had it reading a constant `1` in *every single
   frame*. Offset 28 is not a hidden countdown either — it jitters up and
   down (188 of 356 steps downward, i.e. a random walk) and the app never
-  reads it. This is settled, not outstanding.
-- **Offset 34–37** (u32) has been constant `0` in every capture.
+  reads it. This feature may be added in a future firmware release.
+- **Offset 34–37** (u32) has been constant `0` in every capture. These
+  may be a placeholder for future telemetry, or a checksum that the device
+  does not yet implement.
 - **Status bit `0x0001`** is set in every frame and the app never reads it.
 - **`F0B7` vs `F0B8`** — both flip together when the display language
   changes, so one may mirror the other or be a config-dirty flag. The
@@ -355,6 +330,9 @@ is.
 unresponsive to *all* clients, including the official app. Pressing the
 reset button has reliably recovered it; unplugging AC will not, since the
 battery keeps it running.
+
+**This is just an ESP32.** The BLE stack is the same as any other ESP32,
+so the usual ESP32 caveats apply.
 
 **USB corroborates everything for free.** Connected over USB, this UPS
 implements the standard USB HID Power Device class in cleartext — macOS's

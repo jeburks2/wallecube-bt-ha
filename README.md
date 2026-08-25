@@ -27,7 +27,7 @@ Pushed by the device roughly once per second, in cleartext.
 | --- | --- |
 | **Power** | Input / output voltage and current · output, input and battery power (W) · total energy consumption (kWh, works with the HA energy dashboard) |
 | **Battery** | State of charge (%) · pack voltage · charge/discharge current · temperature |
-| **Cells** | Individual voltage for each of the 4 cells, plus the max–min spread — a growing spread is the classic early sign of pack imbalance |
+| **Cells** | Individual voltage for each of the 4 cells, plus the max–min spread |
 | **Status** | **AC present** · **On battery** · Overload · Shutdown imminent · Charging |
 
 `AC present` and `On battery` are the two that make this worth having:
@@ -48,9 +48,7 @@ Read straight off the `F0B*` characteristics as plain GATT reads:
 - Power-adapter config: adapter current, charge current limit, working
   voltage, stop-charge voltage, power-OK detect voltage
 
-<img src="docs/images/wallecube-diagnostics.png" width="360"
-  alt="The Diagnostic card, listing adapter current, buzzer mode, charge
-  current limit, sleep settings, working voltage and Wi-Fi details">
+![The Diagnostic card, listing adapter current, buzzer mode, charge current limit, sleep settings, working voltage and Wi-Fi details](docs/images/wallecube-diagnostics.png)
 
 ### Writable settings — needs the key *and* auth code
 
@@ -63,10 +61,7 @@ Read straight off the `F0B*` characteristics as plain GATT reads:
 | Sleep current threshold | `number` | 20–3000 mA |
 | LCD off-time | `number` | 10–36000 s |
 
-<img src="docs/images/wallecube-config.png" width="360"
-  alt="The Configuration card, with dropdowns for buzzer mode, display
-  language and temperature unit, and number boxes for LCD off-time, sleep
-  current threshold and sleep timeout">
+![The Configuration card, with dropdowns for buzzer mode, display language and temperature unit, and number boxes for LCD off-time, sleep current threshold and sleep timeout](docs/images/wallecube-config.png)
 
 Plus **Wi-Fi diagnostics** (SSID, IP, signal strength)
 
@@ -85,10 +80,7 @@ reset button on the device** — the wrong shape for something you can drag on
 a dashboard. The 150 W ceiling is checked on the voltage/current *pair*,
 which no static min/max can express.
 
-<img src="docs/images/wallecube-powerconfig.png" width="480"
-  alt="The Power adapter configuration dialog, showing the calculated
-  power-off voltage, the 150 W limit, and fields for adapter voltage and
-  current">
+![The Power adapter configuration dialog, showing the calculated power-off voltage, the 150 W limit, and fields for adapter voltage and current](docs/images/wallecube-powerconfig.png)
 
 ### Not supported
 
@@ -97,7 +89,7 @@ there is nothing to control.
 
 **Runtime remaining** — the device doesn't report it over BLE
 
-***Wi-Fi configuration** — theoretically possible, but have not implemented it yet.
+**Wi-Fi configuration** — theoretically possible, but have not implemented it yet.
 
 ---
 
@@ -191,8 +183,7 @@ there, briefly:
    the telemetry frame.
 7. **Disassemble the Dart** with [blutter][blutter] to recover the
    encryption scheme, and discover the app's release build still `print`s
-   `aesSecret` and `authCode` to logcat. Three commands beat a crypto
-   attack.
+   `aesSecret` and `authCode` to logcat.
 8. **Verify end-to-end** by replaying a captured query, re-encrypted with
    the recovered key, and matching the decrypted response against the app's
    own display.
@@ -202,9 +193,7 @@ aren't rejected — the device reads whatever bytes land in the payload and
 *clamps them into its own valid ranges*, so the write succeeds at the GATT
 layer while storing plausible-but-wrong values. That's why every write here
 is verified by read-back. And read-back only proves the value reached RAM:
-for anything persisted, the real test is write, reset, read again. A 12 V
-adapter write once read back as 12 V and came up as 9 V after a reset, with
-the UPS genuinely outputting 9.02 V.
+for anything persisted, the real test is write, reset, read again.
 
 ---
 
@@ -240,6 +229,9 @@ described above, but you are responsible for your own hardware.
 Tested on a W150 running System ver 1.20 and UPS ver 1.29, app version 1.24.0.
 Running on any other hardware or firmware is at your own risk.
 The protocol may change in future firmware updates, and this integration may break.
+
+Artificial Intelligence was used to assist in reverse-engineering the protocol,
+generate documentation, and write code.
 
 ## License
 
